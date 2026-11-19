@@ -1,0 +1,231 @@
+---
+import { Image, getImage } from 'astro:assets';
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import SiteViewer from '../../components/SiteViewer.astro';
+import DeckViewer from '../../components/DeckViewer.astro';
+import { formatMonth, getProjects, roman } from '../../lib/projects';
+import { url } from '../../lib/url';
+
+export async function getStaticPaths() {
+	const projects = await getProjects();
+	return projects.map((project, i) => ({
+		params: { slug: project.id },
+		props: { project, next: projects[(i + 1) % projects.length] },
+	}));
+}
+
+const { project, next } = Astro.props;
+const { data } = project;
+const { Content, headings } = await render(project);
+const sections = headings.filter((h) => h.depth === 2);
+
+const heroSrc = data.pageHero ?? data.hero;
+const heroAlt = data.pageHeroAlt ?? data.heroAlt;
+const heroCaption = data.pageHeroCaption;
+const isGif = heroSrc.format === 'gif';
+// Lead media: the live site itself (embed), else the motion preview, else the image.
+// A deck, when present, replaces the written case study.
+const embed = data.embedPages && data.liveUrl ? data.embedPages : null;
+const deck = data.deck ?? null;
+const video = !embed && !deck && data.heroVideo && !data.pageHero ? url(`/media/${data.heroVideo}`) : null;
+const poster = video ? await getImage({ src: data.hero, width: 2008, format: 'webp' }) : null;
+const pageUrl = (path: string) => new URL(path, data.liveUrl).href;
+
+const spec = [
+	{ label: 'Skills', value: data.skills ?? 'Placeholder' },
+	{ label: 'Tools', value: data.tools.join(', ') },
+	{ label: 'Date', value: formatMonth(data.date) },
+];
+---
+
+<Base title={data.title} description={data.description}>
+	{embed && <link slot="head" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" />}
+	<!--
+		Same frame as the home page: the title sits at the top of the left rail, level
+		with the lead media opposite, and stays in view (sticky) while the case study scrolls.
+	-->
+	<div class="page split pt-8 pb-10 lg:pt-10">
+		<aside class="left sticky-col flex flex-col gap-10 lg:gap-12" aria-label="On this page">
+			<h1 class="t-rail-title -mt-[6px] text-balance">{data.title}</h1>
+
+			{
+				embed ? (
+					<nav aria-labelledby="pages-label">
+						<div class="border-t border-ink pt-2">
+							<h2 id="pages-label" class="t-section">Browse the site</h2>
+						</div>
+						<ul class="mt-4 flex flex-col gap-2" id="site-pages">
+							{embed.map((pg, i) => (
+								<li>
+									<a
+										href={pageUrl(pg.path)}
+										target="site-viewer"
+										aria-current={i === 0 ? 'true' : undefined}
+										class="toc-item t-small text-ink-soft hover:text-ink"
+									>
+										<span class="label">{pg.label}</span>
+									</a>
+								</li>
+							))}
+						</ul>
+					</nav>
+				) : deck ? (
+					<nav aria-labelledby="slides-label">
+						<div class="border-t border-ink pt-2">
+							<h2 id="slides-label" class="t-section">Presentation</h2>
+						</div>
+						<ol class="mt-4 flex flex-col gap-2" id="deck-slides">
+							{deck.slides.map((title, i) => !(deck.hideFromList ?? []).includes(title) && (
+								<li>
+									<button type="button" data-slide={i} class="toc-item t-small flex cursor-pointer gap-2 text-left text-ink-soft hover:text-ink">
+										<span class="w-8 flex-none text-ink-faint">{roman(i + 1)}</span>
+										<span class="label">{title}</span>
+									</button>
+								</li>
+							))}
+						</ol>
+					</nav>
+				) : (
+					<nav aria-labelledby="contents-label">
+						<div class="border-t border-ink pt-2">
+							<h2 id="contents-label" class="t-section">Contents</h2>
+						</div>
+						<ol class="mt-4 flex flex-col gap-2" id="contents">
+							{sections.map((h, i) => (
+								<li>
+									<a href={`#${h.slug}`} class="toc-item t-small flex gap-2 text-ink-soft hover:text-ink">
+										<span class="w-8 flex-none text-ink-faint">{roman(i + 1)}</span>
+										<span class="label">{h.text}</span>
+									</a>
+								</li>
+							))}
+						</ol>
+					</nav>
+				)
+			}
+
+			<div class="flex flex-col gap-2">
+				<a href={url('/')} class="t-small self-start hover:underline underline-offset-3">← Selected works</a>
+				<a href={url(`/projects/${next.id}/`)} class="t-small self-start hover:underline underline-offset-3">
+					Next: {next.data.title} →
+				</a>
+			</div>
+		</aside>
+
+		<article class="main">
+			{
+				embed ? (
+					<div>
+						<SiteViewer src={data.liveUrl!} title={data.title} />
+					</div>
+				) : deck ? (
+					<div>
+						<DeckViewer dir={deck.dir} slides={deck.slides} motion={deck.motion ?? []} />
+					</div>
+				) : (
+					<figure>
+						<a href={data.liveUrl} target="_blank" rel="noopener" class="lead-link block" aria-label={`Open ${data.title} in a new tab`}>
+						{video ? (
+							<video
+								class="lead-video media-edge w-full"
+								src={video}
+								poster={poster!.src}
+								width={poster!.attributes.width}
+								height={poster!.attributes.height}
+								muted
+								loop
+								playsinline
+								autoplay
+								aria-label={heroAlt}
+							/>
+						) : isGif ? (
+							<img src={heroSrc.src} width={heroSrc.width} height={heroSrc.height} alt={heroAlt} class="media-edge w-full" />
+						) : (
+							<Image src={heroSrc} alt={heroAlt} widths={[1004, 2008]} sizes="(min-width: 1440px) 1004px, 100vw" class="media-edge w-full" />
+						)}
+						</a>
+						{heroCaption && <figcaption>{heroCaption}</figcaption>}
+					</figure>
+				)
+			}
+
+			<dl class="mt-8 grid gap-4 border-t border-rule pt-2 sm:grid-cols-3">
+				{
+					spec.map(({ label, value }) => (
+						<div class="flex flex-col gap-1">
+							<dt class="t-caption text-ink-faint">{label}</dt>
+							<dd class="t-small">{value}</dd>
+						</div>
+					))
+				}
+			</dl>
+
+			{
+				(data.liveUrl || data.repoUrl) && (
+					<ul class="mt-6 flex gap-6">
+						{data.liveUrl && (
+							<li>
+								<a href={data.liveUrl} target="_blank" rel="noopener" class="action">
+									View live<span class="ext" aria-hidden="true">↗</span>
+								</a>
+							</li>
+						)}
+						{data.repoUrl && (
+							<li>
+								<a href={data.repoUrl} target="_blank" rel="noopener" class="action">
+									Explore repo<span class="ext" aria-hidden="true">↗</span>
+								</a>
+							</li>
+						)}
+					</ul>
+				)
+			}
+
+			<div class="case-body mt-16 lg:mt-20">
+				<Content />
+			</div>
+		</article>
+	</div>
+</Base>
+
+<style>
+	.toc-item[aria-current='true'] {
+		color: var(--color-ink);
+	}
+	.toc-item[aria-current='true'] .label {
+		font-weight: 500;
+		text-decoration: underline;
+		text-underline-offset: 3px;
+	}
+</style>
+
+<script>
+	// Scroll-spy: mark the section currently in view as active in Contents.
+	const links = [...document.querySelectorAll<HTMLAnchorElement>('#contents a')];
+	const targets = links
+		.map((a) => document.getElementById(decodeURIComponent(a.hash.slice(1)))?.closest('section'))
+		.filter((s): s is HTMLElement => !!s);
+
+	function update() {
+		const line = window.innerHeight * 0.3;
+		let active = 0;
+		targets.forEach((s, i) => {
+			if (s.getBoundingClientRect().top <= line) active = i;
+		});
+		links.forEach((a, i) => (i === active ? a.setAttribute('aria-current', 'true') : a.removeAttribute('aria-current')));
+	}
+
+	// Respect reduced motion: no autoplay, the viewer can still play it.
+	const lead = document.querySelector<HTMLVideoElement>('video.lead-video');
+	if (lead && matchMedia('(prefers-reduced-motion: reduce)').matches) {
+		lead.pause();
+		lead.controls = true;
+	}
+
+	if (targets.length) {
+		update();
+		window.addEventListener('scroll', update, { passive: true });
+		window.addEventListener('resize', update);
+	}
+</script>

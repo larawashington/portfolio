@@ -1,0 +1,151 @@
+---
+import Base from '../layouts/Base.astro';
+import ProjectRow from '../components/ProjectRow.astro';
+import { CATEGORIES } from '../content.config';
+import { site } from '../data/site';
+import { getProjects } from '../lib/projects';
+
+const projects = await getProjects();
+
+const filters = [
+	{ slug: '', label: 'Selected works', count: projects.length },
+	...CATEGORIES.map((c) => ({
+		...c,
+		count: projects.filter((p) => p.data.categories.includes(c.label)).length,
+	})),
+].filter((f) => f.count > 0);
+---
+
+<!--
+	Home, grid version. The intro and the filter share the left rail, so the
+	work starts at the top of the page; the main column holds the projects two
+	across. The header rule is the only line: the rail's intro and the first
+	row of images share a top edge, and space does the rest of the separating.
+-->
+<Base current="Work">
+	<div class="page split pt-8 pb-12 lg:pt-10">
+		<aside class="left sticky-col flex flex-col gap-10 lg:gap-12" aria-label="Introduction and filter">
+			<div>
+				<h1 class="t-rail-display -mt-[4px] text-balance">{site.intro}</h1>
+				<p class="t-rail-standfirst mt-4 text-balance text-ink-soft">{site.credential}</p>
+			</div>
+
+			<!-- Filter: single-select. State lives in the URL (?filter=<slug>) so it can be linked. -->
+			<nav aria-label="Filter work by category">
+				<ul class="filter-list -my-1.5" id="filter">
+					{
+						filters.map((f) => (
+							<li>
+								<a
+									href={f.slug ? `?filter=${f.slug}` : '?'}
+									data-filter={f.slug}
+									aria-current={f.slug === '' ? 'true' : undefined}
+									class="filter-item t-small flex items-baseline justify-between gap-4 py-1.5 text-ink-soft transition-colors hover:text-ink"
+								>
+									<span class="label">{f.label}</span>
+									<span class="t-data text-ink-faint">{f.count}</span>
+								</a>
+							</li>
+						))
+					}
+				</ul>
+				<p id="filter-status" class="t-data mt-4 text-ink-soft" hidden>
+					Showing <span data-shown></span> of {projects.length}.{' '}
+					<a href="?" data-filter="" class="underline underline-offset-2 hover:text-ink">Show all</a>
+				</p>
+			</nav>
+		</aside>
+
+		<section class="main project-grid" aria-label="Projects" id="projects">
+			{projects.map((project) => <ProjectRow project={project} />)}
+		</section>
+	</div>
+</Base>
+
+<style>
+	.filter-item[aria-current='true'] {
+		color: var(--color-ink);
+	}
+	.filter-item[aria-current='true'] .label {
+		font-weight: 500;
+		text-decoration: underline;
+		text-underline-offset: 3px;
+	}
+
+	/* Desktop: a plain list, the current filter in ink and underlined. Below lg the
+	   filters wrap into a line of words, so they don't push the work a screen down. */
+	@media (max-width: 63.99rem) {
+		.filter-list {
+			display: flex;
+			flex-wrap: wrap;
+			column-gap: 20px;
+		}
+		.filter-item {
+			gap: 6px;
+		}
+	}
+</style>
+
+<script>
+	const items = [...document.querySelectorAll<HTMLAnchorElement>('#filter [data-filter]')];
+	const tiles = [...document.querySelectorAll<HTMLElement>('.project-tile')];
+	const status = document.getElementById('filter-status')!;
+	const shown = status.querySelector('[data-shown]')!;
+	const valid = new Set(items.map((a) => a.dataset.filter));
+
+	function apply(slug: string) {
+		if (!valid.has(slug)) slug = '';
+		let count = 0;
+		for (const tile of tiles) {
+			const match = !slug || tile.dataset.categories!.split(' ').includes(slug);
+			tile.hidden = !match;
+			if (match) count++;
+		}
+		for (const a of items) {
+			if (a.dataset.filter === slug) a.setAttribute('aria-current', 'true');
+			else a.removeAttribute('aria-current');
+		}
+		status.hidden = !slug;
+		shown.textContent = String(count);
+	}
+
+	document.addEventListener('click', (e) => {
+		const a = (e.target as Element).closest<HTMLAnchorElement>('a[data-filter]');
+		if (!a || e.metaKey || e.ctrlKey) return;
+		e.preventDefault();
+		const slug = a.dataset.filter ?? '';
+		const next = new URL(location.href);
+		if (slug) next.searchParams.set('filter', slug);
+		else next.searchParams.delete('filter');
+		history.pushState(null, '', next);
+		apply(slug);
+	});
+
+	// Previews: play on hover/focus; on touch screens, play while mostly in view.
+	// Leaving pauses on the current frame (no rewind), so the preview never jumps.
+	const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+	const canHover = matchMedia('(hover: hover)').matches;
+	const play = (v: HTMLVideoElement) => v.play().catch(() => {});
+	const stop = (v: HTMLVideoElement) => v.pause();
+	for (const tile of tiles) {
+		const video = tile.querySelector<HTMLVideoElement>('video.preview');
+		if (!video) continue;
+		const link = tile.querySelector('a')!;
+		if (canHover) {
+			link.addEventListener('pointerenter', () => play(video));
+			link.addEventListener('pointerleave', () => stop(video));
+		}
+		link.addEventListener('focus', () => play(video));
+		link.addEventListener('blur', () => stop(video));
+	}
+	if (!canHover && !reduced.matches) {
+		const io = new IntersectionObserver(
+			(entries) => entries.forEach((e) => (e.isIntersecting ? play(e.target as HTMLVideoElement) : stop(e.target as HTMLVideoElement))),
+			{ threshold: 0.6 },
+		);
+		document.querySelectorAll<HTMLVideoElement>('video.preview').forEach((v) => io.observe(v));
+	}
+
+	window.addEventListener('popstate', () => apply(new URL(location.href).searchParams.get('filter') ?? ''));
+	apply(new URL(location.href).searchParams.get('filter') ?? '');
+</script>

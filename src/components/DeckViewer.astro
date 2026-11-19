@@ -1,0 +1,207 @@
+---
+// A slide deck you can click through. The control bar borrows the Mitosis Stopwatch
+// itself: the deck's purple, and the counter set in the stopwatch's seven-segment
+// face (DSEG7) in its neon green, like the RESET button.
+// Navigation: arrows (next wraps to the start on the last slide), clicking the slide
+// (left third = back), ← → keys, swipe,
+// and the slide list in the left column (#deck-slides, see [slug].astro).
+// GIFs from the deck play as videos over their slide, restarting each time you arrive.
+import { url } from '../lib/url';
+
+interface Motion {
+	slide: number;
+	src: string;
+	left: number;
+	top: number;
+	width: number;
+	height: number;
+}
+interface Props {
+	dir: string;
+	slides: string[];
+	motion?: Motion[];
+}
+const { dir, slides, motion = [] } = Astro.props;
+const pad = (n: number) => String(n).padStart(2, '0');
+const src = (i: number) => url(`/media/${dir}/slide-${pad(i + 1)}.webp`);
+---
+
+<figure class="deck" aria-roledescription="carousel" aria-label="Presentation">
+	<div class="stage" id="deck-stage">
+		{
+			slides.map((title, i) => (
+				<img
+					src={src(i)}
+					alt={`Slide ${i + 1}: ${title}`}
+					width="1920"
+					height="1080"
+					loading={i < 2 ? 'eager' : 'lazy'}
+					decoding="async"
+					hidden={i !== 0}
+					data-slide={i}
+				/>
+			))
+		}
+		{
+			motion.map((m) => (
+				<video
+					class="motion"
+					src={url(`/media/${dir}/${m.src}`)}
+					data-slide={m.slide - 1}
+					style={`left:${m.left}%;top:${m.top}%;width:${m.width}%;height:${m.height}%`}
+					muted
+					loop
+					playsinline
+					preload="none"
+					hidden={m.slide !== 1}
+					aria-hidden="true"
+				/>
+			))
+		}
+	</div>
+	<div class="bar">
+		<button type="button" class="step" data-step="-1" aria-label="Previous slide">←</button>
+		<p class="count" aria-live="polite">
+			<span class="sr-only">Slide </span><span id="deck-now">01</span><span class="sep">/</span><span>{pad(slides.length)}</span>
+		</p>
+		<button type="button" class="step" data-step="1" aria-label="Next slide">→</button>
+	</div>
+</figure>
+
+<style>
+	@font-face {
+		font-family: 'DSEG7';
+		src: url('https://cdn.jsdelivr.net/npm/dseg@0.46.0/fonts/DSEG7-Classic/DSEG7Classic-Bold.woff2') format('woff2');
+		font-display: swap;
+	}
+	.deck {
+		--mitosis-purple: #512c67;
+		--mitosis-green: #39ff14;
+		background: var(--mitosis-purple);
+	}
+	.stage {
+		position: relative;
+		aspect-ratio: 16 / 9;
+		cursor: pointer;
+		user-select: none;
+	}
+	.stage img {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+	}
+	/* sits exactly over the GIF's still frame in the slide image */
+	.stage .motion {
+		position: absolute;
+		object-fit: fill;
+	}
+	.bar {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 12px 16px;
+	}
+	.count {
+		font-family: 'DSEG7', ui-monospace, monospace;
+		font-size: 18px;
+		line-height: 1;
+		color: var(--mitosis-green);
+		text-shadow: 0 0 4px var(--mitosis-green);
+		display: flex;
+		gap: 10px;
+	}
+	.sep {
+		font-family: var(--font-sans);
+		opacity: 0.7;
+	}
+	.step {
+		width: 40px;
+		height: 28px;
+		border: 1px solid var(--mitosis-green);
+		color: var(--mitosis-green);
+		background: transparent;
+		font-size: 14px;
+		cursor: pointer;
+		transition: background-color 0.15s, color 0.15s;
+	}
+	.step:hover,
+	.step:focus-visible {
+		background: var(--mitosis-green);
+		color: var(--mitosis-purple);
+	}
+	.step:disabled {
+		opacity: 0.3;
+		pointer-events: none;
+	}
+	.step:focus-visible {
+		outline: 1px solid var(--mitosis-green);
+		outline-offset: 3px;
+	}
+	.sr-only {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip: rect(0 0 0 0);
+	}
+</style>
+
+<script>
+	const stage = document.getElementById('deck-stage');
+	if (stage) {
+		const slides = [...stage.querySelectorAll<HTMLImageElement>('img')];
+		const motion = [...stage.querySelectorAll<HTMLVideoElement>('video.motion')];
+		const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+		const now = document.getElementById('deck-now')!;
+		const [prev, next] = [...document.querySelectorAll<HTMLButtonElement>('.deck .step')];
+		const list = [...document.querySelectorAll<HTMLButtonElement>('#deck-slides button')];
+		let at = 0;
+
+		const go = (i: number) => {
+			at = Math.max(0, Math.min(slides.length - 1, i));
+			slides.forEach((s, k) => (s.hidden = k !== at));
+			motion.forEach((v) => {
+				const here = Number(v.dataset.slide) === at;
+				v.hidden = !here;
+				if (here && !still) {
+					v.currentTime = 0;
+					v.play().catch(() => {});
+				} else v.pause();
+			});
+			now.textContent = String(at + 1).padStart(2, '0');
+			prev.disabled = at === 0;
+			// on the last slide the next arrow goes back to the start
+			const last = at === slides.length - 1;
+			next.setAttribute('aria-label', last ? 'Back to first slide' : 'Next slide');
+			next.title = last ? 'Back to start' : '';
+			list.forEach((b) =>
+				Number(b.dataset.slide) === at ? b.setAttribute('aria-current', 'true') : b.removeAttribute('aria-current'),
+			);
+			// warm the next slide so clicking through never waits
+			if (slides[at + 1]) slides[at + 1].loading = 'eager';
+		};
+
+		prev.addEventListener('click', () => go(at - 1));
+		next.addEventListener('click', () => go(at === slides.length - 1 ? 0 : at + 1));
+		list.forEach((b) => b.addEventListener('click', () => go(Number(b.dataset.slide))));
+		stage.addEventListener('click', (e) => {
+			const { left, width } = stage.getBoundingClientRect();
+			go((e as MouseEvent).clientX - left < width / 3 ? at - 1 : at + 1);
+		});
+		document.addEventListener('keydown', (e) => {
+			if ((e.target as Element).closest('input, textarea, select')) return;
+			if (e.key === 'ArrowRight') go(at + 1);
+			if (e.key === 'ArrowLeft') go(at - 1);
+		});
+		let x0: number | null = null;
+		stage.addEventListener('touchstart', (e) => (x0 = e.touches[0].clientX), { passive: true });
+		stage.addEventListener('touchend', (e) => {
+			if (x0 === null) return;
+			const dx = e.changedTouches[0].clientX - x0;
+			if (Math.abs(dx) > 40) go(dx < 0 ? at + 1 : at - 1);
+			x0 = null;
+		});
+		go(0);
+	}
+</script>

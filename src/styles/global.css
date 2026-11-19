@@ -1,0 +1,566 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------
+   Tokens — mirror the Figma "Tokens" collection.
+   ------------------------------------------------------------------ */
+@theme {
+	--font-sans: "Saira", ui-sans-serif, system-ui, sans-serif;
+	--font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+	--color-paper: #fdfbf6;
+	--color-paper-deep: #efebe3;
+	--color-rule: #d9d4ca;
+	--color-ink: #24221f;
+	--color-ink-soft: #5e5a53;
+	--color-ink-faint: #968f80;
+
+	/* Rouge antique is reserved for actions. The rest are in reserve. */
+	--color-rouge: #b4432f;
+	--color-vert-antique: #5f8470;
+	--color-bleu-carrare: #7890a6;
+	--color-jaune-provence: #d49a2e;
+	--color-breche-violette: #86698a;
+	--color-onyx-rose: #d8a49b;
+	/* Brand mark (favicon + wordmark sparkle). Light variant for dark UI lives in public/favicon.svg. */
+	--color-vert-profond: #385724;
+
+	--breakpoint-lg: 64rem;
+}
+
+:root {
+	--inset: 48px;
+	--gutter: 16px;
+}
+
+@media (max-width: 63.99rem) {
+	:root {
+		--inset: 20px;
+	}
+}
+
+html {
+	background: var(--color-paper);
+	color: var(--color-ink);
+	font-family: var(--font-sans);
+	-webkit-font-smoothing: antialiased;
+	scroll-behavior: smooth;
+	scroll-padding-top: 32px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	html {
+		scroll-behavior: auto;
+	}
+}
+
+body {
+	background: var(--color-paper);
+	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
+}
+
+main {
+	flex: 1;
+}
+
+img {
+	display: block;
+	max-width: 100%;
+	height: auto;
+}
+
+::selection {
+	background: var(--color-paper-deep);
+}
+
+/* ------------------------------------------------------------------
+   Text styles — one utility per Figma text style.
+   ------------------------------------------------------------------ */
+@utility t-display {
+	font-size: 64px;
+	line-height: 64px;
+	letter-spacing: -0.02em;
+	font-weight: 400;
+	@media (max-width: 63.99rem) {
+		font-size: 36px;
+		line-height: 38px;
+	}
+}
+@utility t-pull-quote {
+	font-size: 28px;
+	line-height: 34px;
+	font-weight: 300;
+}
+@utility t-standfirst {
+	font-size: 22px;
+	line-height: 28px;
+	font-weight: 300;
+	@media (max-width: 63.99rem) {
+		font-size: 18px;
+		line-height: 24px;
+	}
+}
+@utility t-project-title {
+	font-size: 24px;
+	line-height: 26px;
+	font-weight: 500;
+}
+/* Home grid tiles: one step below t-project-title, to suit the narrower tile. */
+@utility t-tile-title {
+	font-size: 20px;
+	line-height: 24px;
+	font-weight: 500;
+}
+/* Home rail: the intro statement (the page's h1) and the line under it. */
+/* Sits between the summaries (15) and the project titles (20): the titles lead. */
+@utility t-rail-display {
+	font-size: 18px;
+	line-height: 26px;
+	font-weight: 300;
+}
+/* Project + About pages: the page title at the top of the rail. Larger than the home
+   intro (it names one thing), but kept to the rail's width so the work stays the focus. */
+@utility t-rail-title {
+	font-size: 32px;
+	line-height: 36px;
+	letter-spacing: -0.01em;
+	font-weight: 400;
+	@media (max-width: 63.99rem) {
+		font-size: 28px;
+		line-height: 32px;
+	}
+}
+@utility t-rail-standfirst {
+	font-size: 15px;
+	line-height: 22px;
+	font-weight: 400;
+}
+@utility t-section {
+	font-size: 12px;
+	line-height: 14px;
+	font-weight: 500;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+}
+@utility t-wordmark {
+	font-size: 15px;
+	line-height: 18px;
+	font-weight: 500;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+@utility t-date {
+	font-size: 16px;
+	line-height: 20px;
+	font-weight: 300;
+}
+@utility t-body {
+	font-size: 16px;
+	line-height: 24px;
+	font-weight: 400;
+}
+/* Project summaries on the home page: sentence case, read as prose. */
+@utility t-summary {
+	font-size: 15px;
+	line-height: 22px;
+	font-weight: 400;
+}
+@utility t-small {
+	font-size: 12px;
+	line-height: 15px;
+	font-weight: 400;
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+}
+@utility t-action {
+	font-size: 12px;
+	line-height: 15px;
+	font-weight: 500;
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+	text-decoration: underline;
+	text-underline-offset: 3px;
+	text-decoration-thickness: 1px;
+}
+@utility t-category {
+	font-size: 11px;
+	line-height: 13px;
+	font-weight: 400;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+}
+@utility t-caption {
+	font-size: 10px;
+	line-height: 13px;
+	font-weight: 400;
+	text-transform: uppercase;
+	letter-spacing: 0.02em;
+}
+@utility t-index {
+	font-size: 12px;
+	line-height: 14px;
+	font-weight: 400;
+	text-transform: uppercase;
+}
+@utility t-data {
+	font-size: 10px;
+	line-height: 12px;
+	font-weight: 400;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+}
+
+/* Red is reserved for actions (View project, View live, Code). */
+.action {
+	@apply t-action text-rouge transition-colors duration-150;
+}
+.action:hover,
+.action:focus-visible {
+	color: var(--color-ink);
+}
+
+/* Header contact menu. Positioned against the header row (.header-bar), so the
+   panel always starts directly under the header rule, however tall the header
+   gets (the wordmark wraps on phones). Reuses the About page's contact rows. */
+.header-bar {
+	position: relative;
+}
+.contact-menu > button {
+	cursor: default;
+}
+.contact-menu .menu {
+	position: absolute;
+	right: 0;
+	top: calc(100% + 1px); /* below the header's 1px rule, which becomes the top edge */
+	z-index: 50;
+	width: 200px;
+	visibility: hidden;
+	opacity: 0;
+	transition: opacity 0.15s, visibility 0.15s;
+}
+/* invisible bridge over the gap between "Contact" and the panel, so moving the
+   mouse down doesn't count as leaving */
+.contact-menu .menu::before {
+	content: '';
+	position: absolute;
+	bottom: 100%;
+	right: 0;
+	width: 100%;
+	height: 48px;
+}
+/* Hangs from the header rule: ink sides and bottom at the rule's weight, so the
+   header line reads as its top edge. */
+.contact-menu .menu ul {
+	background: var(--color-paper);
+	border: 1px solid var(--color-ink);
+	border-top: 0;
+	padding: 4px 12px;
+}
+.contact-menu .menu li + li a {
+	border-top: 1px solid var(--color-rule);
+}
+/* keyboard focus opens it too; a mouse click doesn't (hover only) */
+.contact-menu[data-open] .menu,
+.contact-menu:has(:focus-visible) .menu {
+	visibility: visible;
+	opacity: 1;
+}
+.contact-menu[data-open] > button,
+.contact-menu:has(:focus-visible) > button {
+	text-decoration: underline;
+	text-underline-offset: 3px;
+}
+
+/* The ↗ glyph comes from IBM Plex Mono so it sits on the baseline. */
+.ext {
+	font-family: var(--font-mono);
+	font-size: 0.9em;
+	text-decoration: none;
+	display: inline-block;
+	margin-left: 0.15em;
+}
+
+:focus-visible {
+	outline: 1px solid var(--color-ink);
+	outline-offset: 3px;
+}
+
+/* ------------------------------------------------------------------
+   Page grid — 24 columns, 48px inset, 16px gutters at 1440.
+   Left column = cols 1–5, main = cols 7–24.
+   ------------------------------------------------------------------ */
+.page {
+	width: 100%;
+	max-width: 1440px;
+	margin-inline: auto;
+	padding-inline: var(--inset);
+}
+
+.split {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr); /* one column on mobile that can't outgrow the screen */
+	gap: 40px;
+}
+@media (min-width: 64rem) {
+	.split {
+		grid-template-columns: repeat(24, minmax(0, 1fr));
+		column-gap: var(--gutter);
+	}
+	.split > .left {
+		grid-column: 1 / span 5;
+	}
+	.split > .main {
+		grid-column: 7 / span 18;
+	}
+}
+
+/* Main column splits into 5 + 13 of its 18 columns (268 / 720 at 1440). */
+.main-row {
+	display: grid;
+	gap: 16px;
+}
+@media (min-width: 64rem) {
+	.main-row {
+		grid-template-columns: repeat(18, minmax(0, 1fr));
+		column-gap: var(--gutter);
+	}
+	.main-row > .narrow {
+		grid-column: 1 / span 5;
+	}
+	.main-row > .wide {
+		grid-column: 6 / span 13;
+	}
+}
+
+/* Home grid: projects two across. Each tile spans four rows (image, title,
+   summary, tools) through subgrid, so neighbouring tiles line up row by row. */
+.project-grid {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	column-gap: calc(var(--gutter) * 2);
+	row-gap: 48px;
+	align-content: start;
+}
+@media (min-width: 40rem) {
+	.project-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+/* No rules between tiles: the images carry the structure, and the gap between
+   rows (well over the 12–16px inside a tile) is what separates one project from the next. */
+@media (min-width: 64rem) {
+	.project-grid {
+		row-gap: 64px;
+	}
+}
+.project-tile,
+.tile-link {
+	display: grid;
+	grid-row: span 4;
+	grid-template-rows: subgrid;
+	row-gap: 12px;
+}
+.project-tile[hidden] {
+	display: none;
+}
+.tile-link > :nth-child(2) {
+	margin-top: 4px;
+}
+/* Hover: the title turns rouge and underlines (red marks what is clickable), the image hairline
+   edge darkens to ink, the preview plays. */
+.tile-link .media-edge {
+	transition: outline-color 0.15s;
+}
+.tile-link .title {
+	transition: color 0.15s;
+}
+.tile-link:hover .media-edge,
+.tile-link:focus-visible .media-edge {
+	outline-color: var(--color-ink);
+}
+.tile-link:hover .title,
+.tile-link:focus-visible .title {
+	color: var(--color-rouge);
+	text-decoration: underline;
+	text-underline-offset: 4px;
+	text-decoration-thickness: 1px;
+}
+
+.sticky-col {
+	@media (min-width: 64rem) {
+		position: sticky;
+		top: 32px;
+		align-self: start;
+	}
+}
+
+/* ------------------------------------------------------------------
+   Case-study body (markdown). Structure comes from rehype-case-study.
+   ------------------------------------------------------------------ */
+.case-section {
+	border-top: 1px solid var(--color-ink);
+	padding-top: 8px;
+	padding-bottom: 64px;
+}
+.case-section:last-child {
+	padding-bottom: 40px;
+}
+.case-head {
+	display: flex;
+	align-items: baseline;
+	gap: 8px;
+	margin-bottom: 16px;
+}
+.case-head .num {
+	@apply t-index text-ink-faint;
+	width: 48px;
+	flex: none;
+}
+.case-head h2 {
+	@apply t-section;
+	margin: 0;
+}
+
+/* One grid per section: margin notes (cols 1–5), text (6–18), figures (1–18).
+   Figures use the margin too, so side-by-side images have room. */
+.case-row {
+	display: grid;
+	row-gap: 24px;
+}
+.case-row > * {
+	min-width: 0;
+}
+@media (min-width: 64rem) {
+	.case-row {
+		grid-template-columns: repeat(18, minmax(0, 1fr));
+		column-gap: var(--gutter);
+	}
+	.case-row > * {
+		grid-column: 6 / -1;
+	}
+	.case-row > .case-margin {
+		grid-column: 1 / span 5;
+		grid-row: 1;
+	}
+	.case-row > figure,
+	.case-row > .figure-row {
+		grid-column: 1 / -1;
+	}
+	.case-row > figure.portrait,
+	.case-row > figure.tall,
+	.case-row > figure.strip {
+		grid-column: 6 / -1;
+	}
+}
+
+.case-margin {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+.case-margin:empty {
+	display: none;
+}
+.case-margin aside {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+.case-margin .data {
+	@apply t-data text-ink;
+}
+.case-margin aside > :not(.data) {
+	@apply t-caption text-ink-soft;
+}
+
+.case-row > p {
+	@apply t-body;
+	max-width: 720px;
+}
+.case-row h3 {
+	@apply t-project-title;
+	margin-top: 24px;
+}
+.case-row blockquote {
+	@apply t-pull-quote;
+	margin: 16px 0;
+}
+.case-row blockquote p {
+	margin: 0;
+}
+.case-row a {
+	text-decoration: underline;
+	text-underline-offset: 3px;
+}
+.case-row ul,
+.case-row ol {
+	@apply t-body;
+	padding-left: 1.2em;
+	list-style: disc;
+}
+
+/* Inline code: a grey mono chip. On its own line (after a <br>) it indents. */
+.case-row code {
+	font-family: var(--font-mono);
+	font-size: 0.85em;
+	background: var(--color-paper-deep);
+	border-radius: 4px;
+	padding: 0.15em 0.4em;
+	overflow-wrap: anywhere;
+}
+.case-row br + code {
+	display: inline-block;
+	margin: 6px 0 2px 1.2em;
+}
+
+/* Thin UI strips (status messages) stay near their on-screen size. */
+figure.strip img {
+	width: 100%;
+	max-width: 480px;
+}
+
+/* Portrait images stay inside the viewport height. */
+figure.portrait img {
+	width: auto;
+	max-height: 85vh;
+}
+
+figure figcaption {
+	@apply t-caption text-ink-soft;
+	margin-top: 8px;
+}
+
+/* Several images in one paragraph: one row, equal heights (flex set per figure). */
+.figure-row {
+	display: flex;
+	gap: 16px;
+	align-items: flex-start;
+}
+.figure-row img {
+	width: 100%;
+}
+@media (max-width: 40rem) {
+	.figure-row {
+		flex-direction: column;
+	}
+	.figure-row > figure {
+		flex: none !important; /* beats the inline aspect-ratio flex */
+	}
+}
+
+/* A hairline edge for previews and lead media. Pale images (maps, cream
+   backgrounds) otherwise dissolve into the paper. Drawn inside, so no layout shift. */
+.media-edge {
+	outline: 1px solid var(--color-rule);
+	outline-offset: -1px;
+}
+
+/* Pixel art: keep hard edges when scaled up. */
+.pixel img,
+img.pixel {
+	image-rendering: pixelated;
+	width: 100%;
+	/* A few sprite GIFs have a baked-in white background; multiply drops it onto the paper. */
+	mix-blend-mode: multiply;
+}

@@ -1,0 +1,117 @@
+---
+// A live site shown in a frame on the project page, so visitors stay on the portfolio.
+// The chrome borrows Project Rolo's own window style (2px ink outline, hard pixel
+// shadow, Rolo-orange title bar, Press Start 2P) — the frame belongs to the project.
+// The page list in the left column targets this frame by name (see [slug].astro).
+interface Props {
+	src: string;
+	title: string;
+}
+const { src, title } = Astro.props;
+const bare = (href: string) => href.replace(/^https?:\/\//, '').replace(/\/$/, '');
+---
+
+<figure class="site-viewer">
+	<!-- The whole title bar opens the page currently in the frame, in a new tab. -->
+	<a href={src} id="viewer-open" target="_blank" rel="noopener" class="bar" aria-label="Open this page in a new tab">
+		<span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+		<span class="addr" id="viewer-url">{bare(src)}</span>
+		<span class="open" aria-hidden="true">↗</span>
+	</a>
+	<iframe name="site-viewer" id="viewer" src={src} title={`${title} website`}></iframe>
+</figure>
+
+<style>
+	.site-viewer {
+		--rolo-ink: #2a1810;
+		--rolo-paper: #fff7e6;
+		--rolo: #e8654a;
+		border: 2px solid var(--rolo-ink);
+		box-shadow: 8px 8px 0 var(--rolo-ink);
+		background: var(--rolo-paper);
+		/* inset by the shadow so its outer edge lands on the column edge */
+		margin-right: 8px;
+	}
+	.bar {
+		display: flex;
+		align-items: center;
+		gap: 16px;
+		padding: 10px 14px;
+		background: var(--rolo);
+		border-bottom: 2px solid var(--rolo-ink);
+		font-family: 'Press Start 2P', ui-monospace, monospace;
+		font-size: 9px;
+		line-height: 1.4;
+		letter-spacing: 0.04em;
+		color: var(--rolo-paper);
+		text-decoration: none;
+	}
+	.bar:hover .addr,
+	.bar:focus-visible .addr {
+		text-decoration: underline;
+		text-underline-offset: 3px;
+	}
+	.dots {
+		display: flex;
+		gap: 6px;
+		flex: none;
+	}
+	.dots i {
+		width: 10px;
+		height: 10px;
+		background: var(--rolo-paper);
+		border: 2px solid var(--rolo-ink);
+	}
+	.addr {
+		flex: 1;
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		text-align: center;
+	}
+	.open {
+		flex: none;
+	}
+	iframe {
+		display: block;
+		width: 100%;
+		height: min(80vh, 960px);
+		min-height: 520px;
+		border: 0;
+		background: var(--rolo-paper);
+	}
+	@media (max-width: 40rem) {
+		.dots {
+			display: none;
+		}
+		.addr {
+			text-align: left;
+		}
+	}
+</style>
+
+<script>
+	// Keep the page list, address and title-bar link in step with the frame.
+	const viewer = document.getElementById('viewer') as HTMLIFrameElement | null;
+	if (viewer) {
+		const pages = [...document.querySelectorAll<HTMLAnchorElement>('#site-pages a')];
+		const label = document.getElementById('viewer-url')!;
+		const open = document.getElementById('viewer-open') as HTMLAnchorElement;
+		const sync = (href: string) => {
+			const clean = href.replace(/\/$/, '');
+			label.textContent = clean.replace(/^https?:\/\//, '');
+			open.href = href;
+			pages.forEach((a) =>
+				a.href.replace(/\/$/, '') === clean ? a.setAttribute('aria-current', 'true') : a.removeAttribute('aria-current'),
+			);
+		};
+		pages.forEach((a) => a.addEventListener('click', () => sync(a.href)));
+		viewer.addEventListener('load', () => {
+			// Same origin once deployed (both on larawashington.github.io), so links clicked inside the frame update too.
+			try {
+				sync(viewer.contentWindow!.location.href);
+			} catch {}
+		});
+	}
+</script>

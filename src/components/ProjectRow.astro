@@ -1,0 +1,62 @@
+---
+import { Image, getImage } from 'astro:assets';
+import type { Project } from '../lib/projects';
+import { categorySlug } from '../lib/projects';
+import { url } from '../lib/url';
+
+interface Props {
+	project: Project;
+}
+
+const { project } = Astro.props;
+const { id, data } = project;
+
+// The poster is the video's first frame, so hover starts without a jump.
+const poster = data.heroVideo ? await getImage({ src: data.hero, width: 1008, format: 'webp' }) : null;
+---
+
+<!--
+	One tile in the home grid. The whole tile is one link.
+	It spans four rows of the parent grid (subgrid), so the image, title, summary
+	and tools line up across each pair of tiles, whatever the text length.
+	data-categories drives the home-page filter.
+-->
+<article class="project-tile" data-categories={data.categories.map(categorySlug).join(' ')}>
+	<a href={url(`/projects/${id}/`)} class="tile-link group">
+		<div class="media-edge aspect-[16/10] overflow-hidden bg-paper-deep">
+			{
+				poster ? (
+					<video
+						class="preview h-full w-full object-cover"
+						src={url(`/media/${data.heroVideo}`)}
+						poster={poster.src}
+						muted
+						loop
+						playsinline
+						preload="metadata"
+						aria-label={data.heroAlt}
+					/>
+				) : (
+					<Image
+						src={data.hero}
+						alt={data.heroAlt}
+						widths={[504, 1008]}
+						sizes="(min-width: 1440px) 494px, (min-width: 1024px) 35vw, (min-width: 640px) 50vw, 100vw"
+						class="h-full w-full object-cover"
+					/>
+				)
+			}
+		</div>
+
+		<div>
+			<h2 class="t-tile-title">
+				<span class="title">{data.title}</span>
+			</h2>
+			<p class="t-category mt-1.5 text-ink-soft">{data.categories.join(', ')}</p>
+		</div>
+
+		<p class="t-summary max-w-[46ch] text-ink-soft">{data.description}</p>
+
+		<p class="t-data text-ink-faint">{data.tools.join(' / ')}</p>
+	</a>
+</article>

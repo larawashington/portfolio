@@ -1,0 +1,55 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import { about, site } from '../data/site';
+import { url } from '../lib/url';
+import portrait from '../assets/about/lara.jpg';
+---
+
+<Base title="About" description={about.standfirst} current="About">
+	<!-- Same frame as the project pages: title at the top of the rail, contact links under it. -->
+	<div class="page split pt-8 pb-10 lg:pt-10">
+		<div class="left sticky-col flex flex-col gap-10 lg:gap-12">
+			<h1 class="t-rail-title -mt-[6px]">About</h1>
+
+			<!-- Same pattern as the Work filter: label left, one quiet mark right. -->
+			<nav aria-labelledby="contact-label">
+				<div class="border-t border-ink pt-2">
+					<h2 id="contact-label" class="t-section">Contact</h2>
+				</div>
+				<ul class="mt-4">
+					{
+						site.contact.map(({ label, href: h, internal }) => {
+							const isMail = h.startsWith('mailto:');
+							return (
+								<li>
+									<a
+										href={internal ? url(h) : h}
+										target={isMail ? undefined : '_blank'}
+										rel={isMail ? undefined : 'noopener'}
+										class="t-small flex items-baseline justify-between gap-4 border-b border-rule py-2 text-ink-soft transition-colors hover:text-ink"
+									>
+										<span>{label}</span>
+										<span class="text-ink-faint" aria-hidden="true">→</span>
+									</a>
+								</li>
+							);
+						})
+					}
+				</ul>
+			</nav>
+		</div>
+
+		<div class="main">
+			<div class="main-row">
+				<figure class="narrow">
+					<Image src={portrait} alt={about.portraitAlt} widths={[268, 536]} sizes="(min-width: 1024px) 268px, 100vw" class="w-full" />
+					<figcaption>{about.portraitCaption}</figcaption>
+				</figure>
+				<div class="wide flex flex-col gap-6">
+					{about.bio.map((p) => <p class="t-body max-w-[720px]">{p}</p>)}
+				</div>
+			</div>
+		</div>
+	</div>
+</Base>
