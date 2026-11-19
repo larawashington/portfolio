@@ -11,8 +11,9 @@ import portrait from '../assets/about/portrait.jpg';
 		<div class="left sticky-col flex flex-col gap-10 lg:gap-12">
 			<h1 class="t-rail-title">About</h1>
 
-			<!-- Same pattern as the Work filter: label left, one quiet mark right. -->
-			<nav aria-labelledby="contact-label">
+			<!-- Same pattern as the Work filter: label left, one quiet mark right.
+			     Desktop only: on phones the footer, right under the bio, has the same links. -->
+			<nav class="hidden lg:block" aria-labelledby="contact-label">
 				<div class="border-t border-ink pt-2">
 					<h2 id="contact-label" class="t-section">Contact</h2>
 				</div>
@@ -50,8 +51,10 @@ import portrait from '../assets/about/portrait.jpg';
 					sizes="(min-width: 1440px) 268px, (min-width: 1024px) 19vw, 100vw"
 					class="narrow media-edge w-full max-lg:max-w-[400px]"
 				/>
-				<div class="wide flex flex-col gap-6">
-					{about.bio.map((p) => <p class="t-body max-w-[720px]">{p}</p>)}
+				<!-- The first paragraph leads (what she does); the rest is background at body size.
+				     Lines held to ~65 characters; the lead's cap height meets the photo's top edge. -->
+				<div class="wide flex max-w-[640px] flex-col gap-5 text-pretty">
+					{about.bio.map((p, i) => <p class:list={[i === 0 ? 't-lead mt-2 mb-2 lg:-mt-[6px]' : 't-body']}>{p}</p>)}
 				</div>
 			</div>
 		</div>

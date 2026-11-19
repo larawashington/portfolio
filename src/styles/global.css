@@ -115,6 +115,16 @@ video {
 		line-height: 32px;
 	}
 }
+/* About: the bio's opening paragraph. Light, one step up from body, so it reads as the summary. */
+@utility t-lead {
+	font-size: 22px;
+	line-height: 30px;
+	font-weight: 300;
+	@media (max-width: 63.99rem) {
+		font-size: 19px;
+		line-height: 27px;
+	}
+}
 @utility t-rail-standfirst {
 	font-size: 15px;
 	line-height: 22px;
