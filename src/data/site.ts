@@ -24,7 +24,7 @@ export const about = {
 		'About Lara Washington, a creative builder and data visualization designer creating digital tools to explore the world through interaction and narrative. MS Data Visualization, Parsons School of Design.',
 	portraitAlt: 'Portrait of Lara Washington',
 	bio: [
-		'Lara is a creative builder and data visualization designer using data as the substrate for narrative and interaction. Her focus is on how data can create digital experiences that foster exploration, understanding, and connection with our natural world and built environments.',
+		'Lara is a creative builder and designer using data as the substrate for narrative and interaction. Her focus is on how data can create digital experiences that foster exploration, understanding, and connection with our natural world and built environments.',
 		'She’s currently pursuing a Master of Science in Data Visualization at Parsons School of Design in New York City, graduating in 2027. She holds a BA in Communication from UCLA.',
 		'Before design, she worked across global and boutique advertising agencies in account management. She has managed campaigns for ZYN, Old El Paso, NatWest, UCLA Health, and more. Now, she takes her experience collaborating across multidisciplinary teams as a designer and builder to bring new experiences to life.',
 	],
