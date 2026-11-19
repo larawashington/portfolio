@@ -64,7 +64,8 @@ main {
 	flex: 1;
 }
 
-img {
+img,
+video {
 	display: block;
 	max-width: 100%;
 	height: auto;
@@ -77,29 +78,10 @@ img {
 /* ------------------------------------------------------------------
    Text styles — one utility per Figma text style.
    ------------------------------------------------------------------ */
-@utility t-display {
-	font-size: 64px;
-	line-height: 64px;
-	letter-spacing: -0.02em;
-	font-weight: 400;
-	@media (max-width: 63.99rem) {
-		font-size: 36px;
-		line-height: 38px;
-	}
-}
 @utility t-pull-quote {
 	font-size: 28px;
 	line-height: 34px;
 	font-weight: 300;
-}
-@utility t-standfirst {
-	font-size: 22px;
-	line-height: 28px;
-	font-weight: 300;
-	@media (max-width: 63.99rem) {
-		font-size: 18px;
-		line-height: 24px;
-	}
 }
 @utility t-project-title {
 	font-size: 24px;
@@ -122,6 +104,8 @@ img {
 /* Project + About pages: the page title at the top of the rail. Larger than the home
    intro (it names one thing), but kept to the rail's width so the work stays the focus. */
 @utility t-rail-title {
+	/* Pulls the cap height up level with the top edge of the media opposite. */
+	margin-top: -6px;
 	font-size: 32px;
 	line-height: 36px;
 	letter-spacing: -0.01em;
@@ -149,11 +133,6 @@ img {
 	font-weight: 500;
 	text-transform: uppercase;
 	letter-spacing: 0.04em;
-}
-@utility t-date {
-	font-size: 16px;
-	line-height: 20px;
-	font-weight: 300;
 }
 @utility t-body {
 	font-size: 16px;
@@ -537,7 +516,8 @@ figure figcaption {
 	gap: 16px;
 	align-items: flex-start;
 }
-.figure-row img {
+.figure-row img,
+.case-video {
 	width: 100%;
 }
 @media (max-width: 40rem) {
@@ -554,13 +534,4 @@ figure figcaption {
 .media-edge {
 	outline: 1px solid var(--color-rule);
 	outline-offset: -1px;
-}
-
-/* Pixel art: keep hard edges when scaled up. */
-.pixel img,
-img.pixel {
-	image-rendering: pixelated;
-	width: 100%;
-	/* A few sprite GIFs have a baked-in white background; multiply drops it onto the paper. */
-	mix-blend-mode: multiply;
 }

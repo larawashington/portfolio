@@ -109,11 +109,12 @@ const bare = (href: string) => href.replace(/^https?:\/\//, '').replace(/\/$/, '
 			);
 		};
 		pages.forEach((a) => a.addEventListener('click', () => sync(a.href)));
-		// The framed site is on another domain, so it reports its own address (see rolo.dev's
+		// The framed site is on another domain, so it reports its own address with a
+		// { type: 'site-viewer:location', href } message (see rolo.dev's
 		// Layout.astro). This covers links clicked inside the frame as well as the list.
 		window.addEventListener('message', (e) => {
 			if (e.source !== viewer.contentWindow || e.origin !== origin) return;
-			if (e.data?.type === 'rolo:location' && typeof e.data.href === 'string') sync(e.data.href);
+			if (e.data?.type === 'site-viewer:location' && typeof e.data.href === 'string') sync(e.data.href);
 		});
 	}
 </script>

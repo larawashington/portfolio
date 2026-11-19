@@ -1,5 +1,4 @@
 // Site-wide copy and links. Edit here; every page reads from this file.
-// Anything marked "placeholder" is waiting on Lara's copy.
 export const site = {
 	name: 'Lara Washington',
 	title: 'Lara Washington — Portfolio',
@@ -15,15 +14,15 @@ export const site = {
 		{ label: 'Email', href: 'mailto:washingtonlfw@gmail.com' },
 		{ label: 'GitHub', href: 'https://github.com/larawashington' },
 		{ label: 'LinkedIn', href: 'https://www.linkedin.com/in/lara-washington/' },
-		{ label: 'Resume', href: '/resume.pdf', internal: true },
+		{ label: 'Resume', href: '/resume.pdf' },
 	],
 };
 
 export const about = {
-	standfirst:
-		'Lara Washington is a designer and developer who makes maps, charts and small tools about the natural world. (Placeholder — one or two sentences.)',
+	/** Search results and link previews for the About page. */
+	description:
+		'About Lara Washington, a data visualization designer creating digital tools to explore the natural world. MS Data Visualization, Parsons School of Design.',
 	portraitAlt: 'Portrait of Lara Washington',
-	portraitCaption: 'Lara Washington. Photograph — placeholder credit, 2021.',
 	bio: [
 		'Placeholder bio paragraph. What you make, how you work, what you care about, and what you’re looking for next. Three or four sentences.',
 		'Placeholder bio paragraph. What you make, how you work, what you care about, and what you’re looking for next. Three or four sentences.',

@@ -1,7 +1,6 @@
 ---
 title: Project Rolo
 description: "A pixel-art desktop companion with his own personality and memory system, running locally on your machine."
-standfirst: A free, open-source desktop companion here to make your day a little brighter, and the landing page that introduces him.
 categories: [UX Design, AI Design + Tooling]
 tools: [Claude Code, Gemma 3 4B, DeepSeek V4-Pro, Kimi K2.6, Ollama, Hugging Face, Astro, CSS, JavaScript]
 skills: Agent architecture, supervised fine-tuning, reinforcement learning, agent tooling, retrieval design, data structures, front-end, character design, sprite animation

@@ -1,7 +1,6 @@
 ---
 title: SpeciesNYC
 description: "An interactive map for exploring species occurrence data in New York City through iNaturalist's API."
-standfirst: Click anywhere in New York or New Jersey to see which species are most observed there, and which are most distinctive.
 categories: [Data Visualization, UX Design]
 tools: [JavaScript, Leaflet, API]
 skills: Interaction design, responsive design, geospatial data, API integration
@@ -52,8 +51,8 @@ On mobile, the panel is a bottom sheet over 65% of the screen, and the search ci
 
 On both, the map zooms out if the circle is too large to fit.
 
-![SpeciesNYC on a phone: tapping the map opens the most observed and most distinctive species](./speciesnyc-mobile-mockup.gif)
-![SpeciesNYC on a laptop: dragging the search radius across New York City](./speciesnyc-desktop-mockup.gif)
+![SpeciesNYC on a phone: tapping the map opens the most observed and most distinctive species](/media/species-nyc/mobile-mockup.mp4)
+![SpeciesNYC on a laptop: dragging the search radius across New York City](/media/species-nyc/desktop-mockup.mp4)
 
 If the user clicks on open water or outside New York or New Jersey, one of the following messages appears instead of an empty list.
 

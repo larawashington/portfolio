@@ -1,0 +1,16 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<!-- GitHub Pages serves this for any address that doesn't exist. Same frame as the other pages. -->
+<Base title="Page not found" description="This page doesn't exist.">
+	<div class="page split pt-8 pb-10 lg:pt-10">
+		<div class="left">
+			<h1 class="t-rail-title">Page not found</h1>
+		</div>
+		<div class="main flex flex-col items-start gap-6">
+			<p class="t-body max-w-[720px]">There's nothing at this address. It may have moved, or the link may have a typo.</p>
+			<a href={'/'} class="action">See all work</a>
+		</div>
+	</div>
+</Base>

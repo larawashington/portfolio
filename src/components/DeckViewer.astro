@@ -6,7 +6,6 @@
 // (left third = back), ← → keys, swipe,
 // and the slide list in the left column (#deck-slides, see [slug].astro).
 // GIFs from the deck play as videos over their slide, restarting each time you arrive.
-import { url } from '../lib/url';
 
 interface Motion {
 	slide: number;
@@ -19,11 +18,11 @@ interface Motion {
 interface Props {
 	dir: string;
 	slides: string[];
-	motion?: Motion[];
+	motion: Motion[];
 }
-const { dir, slides, motion = [] } = Astro.props;
+const { dir, slides, motion } = Astro.props;
 const pad = (n: number) => String(n).padStart(2, '0');
-const src = (i: number) => url(`/media/${dir}/slide-${pad(i + 1)}.webp`);
+const src = (i: number) => `/media/${dir}/slide-${pad(i + 1)}.webp`;
 ---
 
 <figure class="deck" aria-roledescription="carousel" aria-label="Presentation">
@@ -46,7 +45,7 @@ const src = (i: number) => url(`/media/${dir}/slide-${pad(i + 1)}.webp`);
 			motion.map((m) => (
 				<video
 					class="motion"
-					src={url(`/media/${dir}/${m.src}`)}
+					src={`/media/${dir}/${m.src}`}
 					data-slide={m.slide - 1}
 					style={`left:${m.left}%;top:${m.top}%;width:${m.width}%;height:${m.height}%`}
 					muted

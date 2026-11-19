@@ -1,21 +1,19 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 
+import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
 import { rehypeCaseStudy } from './src/lib/rehype-case-study.mjs';
 
-// Served from the `portfolio` repo on the custom domain (public/CNAME).
-const SITE = 'https://larawashington.com';
-const BASE = '';
-
 // https://astro.build/config
 export default defineConfig({
-  site: SITE,
-  base: BASE,
+  // Served from the `portfolio` repo on the custom domain (public/CNAME), at the root.
+  site: 'https://larawashington.com',
+
+  integrations: [sitemap({ filter: (page) => !page.includes('/404') })],
 
   redirects: {
-    // Drop the file at public/resume.pdf
-    '/resume': `${BASE}/resume.pdf`,
+    '/resume': '/resume.pdf',
   },
 
   markdown: {

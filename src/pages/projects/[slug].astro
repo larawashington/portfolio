@@ -5,7 +5,6 @@ import Base from '../../layouts/Base.astro';
 import SiteViewer from '../../components/SiteViewer.astro';
 import DeckViewer from '../../components/DeckViewer.astro';
 import { formatMonth, getProjects, roman } from '../../lib/projects';
-import { url } from '../../lib/url';
 
 export async function getStaticPaths() {
 	const projects = await getProjects();
@@ -20,15 +19,10 @@ const { data } = project;
 const { Content, headings } = await render(project);
 const sections = headings.filter((h) => h.depth === 2);
 
-const heroSrc = data.pageHero ?? data.hero;
-const heroAlt = data.pageHeroAlt ?? data.heroAlt;
-const heroCaption = data.pageHeroCaption;
-const isGif = heroSrc.format === 'gif';
-// Lead media: the live site itself (embed), else the motion preview, else the image.
-// A deck, when present, replaces the written case study.
+// Lead media: the live site itself (embed), else a deck, else the motion preview, else the image.
 const embed = data.embedPages && data.liveUrl ? data.embedPages : null;
 const deck = data.deck ?? null;
-const video = !embed && !deck && data.heroVideo && !data.pageHero ? url(`/media/${data.heroVideo}`) : null;
+const video = !embed && !deck && data.heroVideo ? `/media/${data.heroVideo}` : null;
 const poster = video ? await getImage({ src: data.hero, width: 2008, format: 'webp' }) : null;
 const pageUrl = (path: string) => new URL(path, data.liveUrl).href;
 
@@ -39,17 +33,23 @@ const contents: Entry[] = embed
 	: deck
 		? deck.slides
 				.map((label, slide) => ({ label, slide }))
-				.filter(({ label }) => !(deck.hideFromList ?? []).includes(label))
+				.filter(({ label }) => !deck.hideFromList.includes(label))
 		: sections.map((h) => ({ label: h.text, href: `#${h.slug}` }));
 
 const spec = [
-	{ label: 'Skills', value: data.skills ?? 'Placeholder' },
+	{ label: 'Skills', value: data.skills },
 	{ label: 'Tools', value: data.tools.join(', ') },
 	{ label: 'Date', value: formatMonth(data.date) },
+].filter((s) => s.value);
+
+// "← Selected works / Next" — in the rail on desktop, and again at the end of the write-up.
+const more = [
+	{ href: '/', label: '← Selected works' },
+	{ href: `/projects/${next.id}/`, label: `Next: ${next.data.title} →` },
 ];
 ---
 
-<Base title={data.title} description={data.description}>
+<Base title={data.title} description={data.description} image={data.hero}>
 	{embed && <link slot="head" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" />}
 	<!--
 		Same frame as the home page: the title sits at the top of the left rail, level
@@ -57,43 +57,47 @@ const spec = [
 	-->
 	<div class="page split pt-8 pb-10 lg:pt-10">
 		<aside class="left sticky-col flex flex-col gap-10 lg:gap-12" aria-label="On this page">
-			<h1 class="t-rail-title -mt-[6px] text-balance">{data.title}</h1>
+			<h1 class="t-rail-title text-balance">{data.title}</h1>
 
 			<!-- One Contents menu for every project: sections of the write-up, slides of the
-			     deck, or pages of the embedded site. Same numbered list in each case. -->
-			<nav aria-labelledby="contents-label">
-				<div class="border-t border-ink pt-2">
-					<h2 id="contents-label" class="t-section">Contents</h2>
-				</div>
+			     deck, or pages of the embedded site. On phones it folds up, so the work comes first. -->
+			<details class="contents-fold" open>
+				<summary class="block border-t border-ink pt-2 lg:pointer-events-none">
+					<h2 class="t-section">Contents</h2>
+				</summary>
 				<ol class="mt-4 flex flex-col gap-2" id={embed ? 'site-pages' : deck ? 'deck-slides' : 'contents'}>
-					{contents.map((item, i) => (
-						<li>
-							{item.slide !== undefined ? (
-								<button type="button" data-slide={item.slide} class="toc-item t-small flex cursor-pointer gap-2 text-left text-ink-soft hover:text-ink">
+					{contents.map((item, i) => {
+						// Slides are buttons (they drive the deck); everything else is a link.
+						const Tag = item.slide !== undefined ? 'button' : 'a';
+						const attrs =
+							item.slide !== undefined
+								? { type: 'button', 'data-slide': item.slide }
+								: { href: item.href, target: embed ? 'site-viewer' : undefined, 'aria-current': embed && i === 0 ? 'true' : undefined };
+						return (
+							<li>
+								<Tag {...attrs} class="toc-item t-small flex cursor-pointer gap-2 text-left text-ink-soft hover:text-ink">
 									<span class="w-8 flex-none text-ink-faint">{roman(i + 1)}</span>
 									<span class="label">{item.label}</span>
-								</button>
-							) : (
-								<a
-									href={item.href}
-									target={embed ? 'site-viewer' : undefined}
-									aria-current={embed && i === 0 ? 'true' : undefined}
-									class="toc-item t-small flex gap-2 text-ink-soft hover:text-ink"
-								>
-									<span class="w-8 flex-none text-ink-faint">{roman(i + 1)}</span>
-									<span class="label">{item.label}</span>
-								</a>
-							)}
-						</li>
-					))}
+								</Tag>
+							</li>
+						);
+					})}
 				</ol>
-			</nav>
+			</details>
+			<script is:inline>
+				// Runs as the page parses, so phones never see the list open and then jump shut.
+				// On desktop it's a plain label, so keep it open even from the keyboard.
+				(() => {
+					const fold = document.currentScript.previousElementSibling;
+					const desktop = matchMedia('(min-width: 64rem)');
+					if (!desktop.matches) fold.open = false;
+					fold.addEventListener('toggle', () => desktop.matches && !fold.open && (fold.open = true));
+				})();
+			</script>
 
-			<div class="flex flex-col gap-2">
-				<a href={url('/')} class="t-small self-start hover:underline underline-offset-3">← Selected works</a>
-				<a href={url(`/projects/${next.id}/`)} class="t-small self-start hover:underline underline-offset-3">
-					Next: {next.data.title} →
-				</a>
+			<!-- Desktop only: on phones the same links close the write-up instead. -->
+			<div class="hidden flex-col items-start gap-2 lg:flex">
+				{more.map((l) => <a href={l.href} class="t-small hover:underline underline-offset-3">{l.label}</a>)}
 			</div>
 		</aside>
 
@@ -130,45 +134,44 @@ const spec = [
 				)
 			}
 
-			{
-				embed ? (
-					<div class="mt-12">
+			<div class="mt-12">
+				{
+					embed ? (
 						<SiteViewer src={data.liveUrl!} title={data.title} />
-					</div>
-				) : deck ? (
-					<div class="mt-12">
-						<DeckViewer dir={deck.dir} slides={deck.slides} motion={deck.motion ?? []} />
-					</div>
-				) : (
-					<figure class="mt-12">
-						<a href={data.liveUrl} target="_blank" rel="noopener" class="lead-link block" aria-label={`Open ${data.title} in a new tab`}>
-						{video ? (
-							<video
-								class="lead-video media-edge w-full"
-								src={video}
-								poster={poster!.src}
-								width={poster!.attributes.width}
-								height={poster!.attributes.height}
-								muted
-								loop
-								playsinline
-								autoplay
-								aria-label={heroAlt}
-							/>
-						) : isGif ? (
-							<img src={heroSrc.src} width={heroSrc.width} height={heroSrc.height} alt={heroAlt} class="media-edge w-full" />
-						) : (
-							<Image src={heroSrc} alt={heroAlt} widths={[1004, 2008]} sizes="(min-width: 1440px) 1004px, 100vw" class="media-edge w-full" />
-						)}
+					) : deck ? (
+						<DeckViewer dir={deck.dir} slides={deck.slides} motion={deck.motion} />
+					) : (
+						<a href={data.liveUrl} target="_blank" rel="noopener" class="block" aria-label={`Open ${data.title} in a new tab`}>
+							{video ? (
+								<video
+									class="lead-video media-edge w-full"
+									src={video}
+									poster={poster!.src}
+									width={poster!.attributes.width}
+									height={poster!.attributes.height}
+									muted
+									loop
+									playsinline
+									preload="metadata"
+									data-autoplay
+									aria-label={data.heroAlt}
+								/>
+							) : (
+								<Image src={data.hero} alt={data.heroAlt} widths={[1004, 2008]} sizes="(min-width: 1440px) 1004px, 100vw" class="media-edge w-full" />
+							)}
 						</a>
-						{heroCaption && <figcaption>{heroCaption}</figcaption>}
-					</figure>
-				)
-			}
+					)
+				}
+			</div>
 
 			<div class="case-body mt-16 lg:mt-20">
 				<Content />
 			</div>
+
+			<!-- End of the write-up: where to go next. -->
+			<nav class="flex flex-wrap justify-between gap-4 border-t border-ink pt-2" aria-label="More work">
+				{more.map((l) => <a href={l.href} class="t-small hover:underline underline-offset-3">{l.label}</a>)}
+			</nav>
 		</article>
 	</div>
 </Base>
@@ -181,6 +184,30 @@ const spec = [
 		font-weight: 500;
 		text-decoration: underline;
 		text-underline-offset: 3px;
+	}
+
+	/* Contents: a plain label on desktop; a tap-to-open fold on phones, marked + / −. */
+	.contents-fold summary {
+		list-style: none;
+	}
+	.contents-fold summary::-webkit-details-marker {
+		display: none;
+	}
+	@media (max-width: 63.99rem) {
+		.contents-fold summary {
+			display: flex;
+			justify-content: space-between;
+			cursor: pointer;
+		}
+		.contents-fold summary::after {
+			content: '+';
+			font-family: var(--font-mono);
+			font-size: 12px;
+			line-height: 14px;
+		}
+		.contents-fold[open] summary::after {
+			content: '−';
+		}
 	}
 </style>
 
@@ -198,13 +225,6 @@ const spec = [
 			if (s.getBoundingClientRect().top <= line) active = i;
 		});
 		links.forEach((a, i) => (i === active ? a.setAttribute('aria-current', 'true') : a.removeAttribute('aria-current')));
-	}
-
-	// Respect reduced motion: no autoplay, the viewer can still play it.
-	const lead = document.querySelector<HTMLVideoElement>('video.lead-video');
-	if (lead && matchMedia('(prefers-reduced-motion: reduce)').matches) {
-		lead.pause();
-		lead.controls = true;
 	}
 
 	if (targets.length) {

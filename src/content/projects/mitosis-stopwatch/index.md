@@ -1,7 +1,6 @@
 ---
 title: Mitosis Stopwatch
 description: "An experimental visualization of temporal data that keeps time through computed cell division."
-standfirst: A stopwatch that keeps time through cell division. The clock stops when the cells run out of room.
 categories: [Data Visualization]
 tools: [JavaScript, CSS, HTML, D3.js]
 skills: Experimental data visualization, interactive motion, physics simulation, system design

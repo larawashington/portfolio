@@ -2,7 +2,6 @@
 import { Image, getImage } from 'astro:assets';
 import type { Project } from '../lib/projects';
 import { categorySlug } from '../lib/projects';
-import { url } from '../lib/url';
 
 interface Props {
 	project: Project;
@@ -22,13 +21,13 @@ const poster = data.heroVideo ? await getImage({ src: data.hero, width: 1008, fo
 	data-categories drives the home-page filter.
 -->
 <article class="project-tile" data-categories={data.categories.map(categorySlug).join(' ')}>
-	<a href={url(`/projects/${id}/`)} class="tile-link group">
+	<a href={`/projects/${id}/`} class="tile-link group">
 		<div class="media-edge aspect-[16/10] overflow-hidden bg-paper-deep">
 			{
 				poster ? (
 					<video
 						class="preview h-full w-full object-cover"
-						src={url(`/media/${data.heroVideo}`)}
+						src={`/media/${data.heroVideo}`}
 						poster={poster.src}
 						muted
 						loop

@@ -1,7 +1,6 @@
 ---
 title: Smithsonian Orchid Collection
 description: "A partition chart of the Smithsonian's 48,786 orchid specimens, mapped against their taxonomic classification."
-standfirst: A partition chart of the taxonomy of the Smithsonian’s 48,786 orchid specimens across 655 genera.
 categories: [Data Visualization]
 tools: [JavaScript, D3.js, API]
 skills: Data visualization, data cleaning + processing, API integration

@@ -9,6 +9,8 @@
 //   single figures by shape: landscape → full main column; portrait → text column,
 //   capped to the viewport; very tall (style guides) → text column, uncapped;
 //   thin strips (UI snippets) → text column
+//   ![alt](/media/x.mp4)                 → a muted looping <video>; the poster is
+//                                          /media/x.webp (same name), which also gives its size
 //
 // Walks the hast tree by hand. Images in a row are sized by aspect ratio (via sharp,
 // which Astro already ships) so they share one height.
@@ -52,9 +54,28 @@ function takeCaption(img) {
 	return null;
 }
 
+const isVideo = (img) => /\.mp4$/i.test(imageSrc(img) ?? '');
+
+/** Screen recordings: the <img> becomes a silent loop, like the GIF it replaces. */
+function toVideo(img) {
+	const src = imageSrc(img);
+	return el('video', {
+		src,
+		poster: src.replace(/\.mp4$/i, '.webp'),
+		ariaLabel: img.properties.alt,
+		muted: true,
+		loop: true,
+		playsInline: true,
+		// Plays only while on screen (and never with reduced motion): see Base.astro.
+		dataAutoplay: true,
+		preload: 'none',
+		className: ['case-video'],
+	});
+}
+
 function figure(img) {
 	const caption = takeCaption(img);
-	const children = [img];
+	const children = [isVideo(img) ? toVideo(img) : img];
 	if (caption) children.push(el('figcaption', {}, [text(caption)]));
 	return el('figure', {}, children);
 }
@@ -91,15 +112,23 @@ function imageSrc(img) {
 	return p.src;
 }
 
-async function dimensions(img, file) {
+/** Size of an image, or of a video's poster. Videos live in public/, images beside the markdown. */
+async function dimensions(media, file) {
+	if (media.tagName === 'video') return sharp(path.resolve('public', '.' + media.properties.poster)).metadata();
 	const dir = path.dirname(file.path ?? file.history?.[0] ?? '');
-	return sharp(path.resolve(dir, decodeURI(imageSrc(img)))).metadata();
+	return sharp(path.resolve(dir, decodeURI(imageSrc(media)))).metadata();
+}
+
+/** Videos get their poster's size, so the page doesn't shift while the poster loads. */
+function reserveSpace(media, width, height) {
+	if (media.tagName === 'video') Object.assign(media.properties, { width, height });
 }
 
 /** Tag a lone figure by shape so CSS can size it. */
 async function shapeFigure(fig, file) {
 	try {
 		const { width, height } = await dimensions(fig.children[0], file);
+		reserveSpace(fig.children[0], width, height);
 		const r = height / width;
 		if (r > 2) fig.properties.className = ['tall'];
 		else if (r > 1) fig.properties.className = ['portrait'];
@@ -113,6 +142,7 @@ async function sizeRow(row, file) {
 		row.children.map(async (fig) => {
 			try {
 				const { width, height } = await dimensions(fig.children[0], file);
+				reserveSpace(fig.children[0], width, height);
 				fig.properties.style = `flex: ${(width / height).toFixed(4)} 1 0`;
 			} catch {
 				fig.properties.style = 'flex: 1 1 0';

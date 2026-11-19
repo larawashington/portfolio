@@ -9,7 +9,6 @@ export const TOOLS = [
 	'HTML',
 	'CSS',
 	'JavaScript',
-	'TypeScript',
 	'D3.js',
 	'Leaflet',
 	'API',
@@ -43,21 +42,15 @@ const projects = defineCollection({
 			title: z.string(),
 			/** One or two sentences — home row + meta description. */
 			description: z.string(),
-			/** Larger intro under the H1 on the project page. Falls back to description. */
-			standfirst: z.string().optional(),
 			categories: z.array(z.enum(categoryLabels)).min(1),
 			tools: z.array(z.enum(TOOLS)).min(1),
-			/** Free text for the spec strip, e.g. "Data visualization, front-end development". */
+			/** Free text for the spec strip, e.g. "Data visualization, front-end development". Left out of the strip when empty. */
 			skills: z.string().optional(),
 			/** Home-row image (16:10). */
 			hero: image(),
 			heroAlt: z.string(),
 			/** Silent looping preview in public/media/, e.g. "species-nyc.mp4". Plays on hover on the home page; `hero` is its poster (use the video's first frame). */
 			heroVideo: z.string().optional(),
-			/** Optional different lead image on the project page (e.g. an animated GIF). */
-			pageHero: image().optional(),
-			pageHeroAlt: z.string().optional(),
-			pageHeroCaption: z.string().optional(),
 			/** Show a slide deck instead of a written case study. Images live in public/media/<dir>/slide-01.webp … */
 			deck: z
 				.object({

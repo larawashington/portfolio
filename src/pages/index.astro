@@ -22,7 +22,8 @@ const filters = [
 	across. The header rule is the only line: the rail's intro and the first
 	row of images share a top edge, and space does the rest of the separating.
 -->
-<Base current="Work">
+<!-- Link previews show the first project's image. -->
+<Base current="Work" image={projects[0].data.hero}>
 	<div class="page split pt-8 pb-12 lg:pt-10">
 		<aside class="left sticky-col flex flex-col gap-10 lg:gap-12" aria-label="Introduction and filter">
 			<div>

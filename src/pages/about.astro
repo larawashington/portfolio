@@ -2,15 +2,14 @@
 import { Image } from 'astro:assets';
 import Base from '../layouts/Base.astro';
 import { about, site } from '../data/site';
-import { url } from '../lib/url';
-import portrait from '../assets/about/lara.jpg';
+import portrait from '../assets/about/portrait.jpg';
 ---
 
-<Base title="About" description={about.standfirst} current="About">
+<Base title="About" description={about.description} current="About" image={portrait}>
 	<!-- Same frame as the project pages: title at the top of the rail, contact links under it. -->
 	<div class="page split pt-8 pb-10 lg:pt-10">
 		<div class="left sticky-col flex flex-col gap-10 lg:gap-12">
-			<h1 class="t-rail-title -mt-[6px]">About</h1>
+			<h1 class="t-rail-title">About</h1>
 
 			<!-- Same pattern as the Work filter: label left, one quiet mark right. -->
 			<nav aria-labelledby="contact-label">
@@ -19,12 +18,12 @@ import portrait from '../assets/about/lara.jpg';
 				</div>
 				<ul class="mt-4">
 					{
-						site.contact.map(({ label, href: h, internal }) => {
+						site.contact.map(({ label, href: h }) => {
 							const isMail = h.startsWith('mailto:');
 							return (
 								<li>
 									<a
-										href={internal ? url(h) : h}
+										href={h}
 										target={isMail ? undefined : '_blank'}
 										rel={isMail ? undefined : 'noopener'}
 										class="t-small flex items-baseline justify-between gap-4 border-b border-rule py-2 text-ink-soft transition-colors hover:text-ink"
@@ -41,11 +40,16 @@ import portrait from '../assets/about/lara.jpg';
 		</div>
 
 		<div class="main">
+			<!-- Same grid as a project write-up: photo in the margin column, text in the
+			     text column. Hairline edge like every other image on the site. -->
 			<div class="main-row">
-				<figure class="narrow">
-					<Image src={portrait} alt={about.portraitAlt} widths={[268, 536]} sizes="(min-width: 1024px) 268px, 100vw" class="w-full" />
-					<figcaption>{about.portraitCaption}</figcaption>
-				</figure>
+				<Image
+					src={portrait}
+					alt={about.portraitAlt}
+					widths={[268, 536, 800]}
+					sizes="(min-width: 1440px) 268px, (min-width: 1024px) 19vw, 100vw"
+					class="narrow media-edge w-full max-lg:max-w-[400px]"
+				/>
 				<div class="wide flex flex-col gap-6">
 					{about.bio.map((p) => <p class="t-body max-w-[720px]">{p}</p>)}
 				</div>

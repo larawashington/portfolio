@@ -1,30 +1,43 @@
 ---
+import type { ImageMetadata } from 'astro';
+import { getImage } from 'astro:assets';
 import '../styles/global.css';
 import { site } from '../data/site';
-import { url } from '../lib/url';
 
 interface Props {
 	title?: string;
 	description?: string;
 	/** Which top-nav item to mark as current. */
 	current?: 'Work' | 'About';
+	/** Link-preview image (LinkedIn, Slack…). Built here at the size they expect. */
+	image?: ImageMetadata;
 }
 
-const { title, description = site.intro, current } = Astro.props;
+const { title, description = site.intro, current, image } = Astro.props;
 const pageTitle = title ? `${title} — ${site.name}` : site.title;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const shareImage = image && new URL((await getImage({ src: image, width: 1200, format: 'jpg' })).src, Astro.site);
 const year = new Date().getFullYear();
-const href = (h: string) => (h.startsWith('/') ? url(h) : h);
 ---
 
 <html lang="en">
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<link rel="icon" href={url('/favicon.ico')} sizes="32x32" />
-		<link rel="icon" type="image/svg+xml" href={url('/favicon.svg')} />
-		<link rel="apple-touch-icon" href={url('/apple-touch-icon.png')} />
+		<link rel="icon" href={'/favicon.ico'} sizes="32x32" />
+		<link rel="icon" type="image/svg+xml" href={'/favicon.svg'} />
+		<link rel="apple-touch-icon" href={'/apple-touch-icon.png'} />
 		<title>{pageTitle}</title>
 		<meta name="description" content={description} />
+		<link rel="canonical" href={canonical} />
+		<link rel="sitemap" href={'/sitemap-index.xml'} />
+		<meta property="og:type" content="website" />
+		<meta property="og:site_name" content={site.name} />
+		<meta property="og:title" content={pageTitle} />
+		<meta property="og:description" content={description} />
+		<meta property="og:url" content={canonical} />
+		{shareImage && <meta property="og:image" content={shareImage} />}
+		<meta name="twitter:card" content={shareImage ? 'summary_large_image' : 'summary'} />
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 		<link
@@ -36,7 +49,7 @@ const href = (h: string) => (h.startsWith('/') ? url(h) : h);
 	<body>
 		<header class="page" id="top">
 			<div class="header-bar flex flex-wrap items-baseline justify-between gap-x-6 gap-y-3 border-b border-ink py-6 lg:py-12 lg:pb-4">
-				<a href={url('/')} class="t-wordmark whitespace-nowrap">
+				<a href={'/'} class="t-wordmark whitespace-nowrap">
 					<svg class="mr-1.5 inline-block size-[1.1em] align-[-0.2em] text-vert-profond" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
 						<path
 							fill="currentColor"
@@ -56,12 +69,12 @@ const href = (h: string) => (h.startsWith('/') ? url(h) : h);
 										</button>
 										<div class="menu">
 											<ul>
-												{site.contact.map(({ label, href: h, internal }) => {
+												{site.contact.map(({ label, href: h }) => {
 													const isMail = h.startsWith('mailto:');
 													return (
 														<li>
 															<a
-																href={internal ? url(h) : h}
+																href={h}
 																target={isMail ? undefined : '_blank'}
 																rel={isMail ? undefined : 'noopener'}
 																class="t-small flex items-baseline justify-between gap-6 py-2 text-ink-soft transition-colors hover:text-ink"
@@ -78,7 +91,7 @@ const href = (h: string) => (h.startsWith('/') ? url(h) : h);
 								) : (
 									<li>
 										<a
-											href={href(item.href)}
+											href={item.href}
 											class:list={[
 												't-small whitespace-nowrap hover:underline underline-offset-3',
 												current === item.label && 'font-medium underline',
@@ -106,12 +119,12 @@ const href = (h: string) => (h.startsWith('/') ? url(h) : h);
 				<div class="main flex flex-wrap items-baseline justify-between gap-x-10 gap-y-6">
 					<ul class="flex flex-wrap gap-x-10 gap-y-4">
 						{
-							site.contact.map(({ label, href: h, internal }) => {
+							site.contact.map(({ label, href: h }) => {
 								const isMail = h.startsWith('mailto:');
 								return (
 									<li>
 										<a
-											href={internal ? url(h) : h}
+											href={h}
 											target={isMail ? undefined : '_blank'}
 											rel={isMail ? undefined : 'noopener'}
 											class="t-small block font-medium hover:underline underline-offset-3"
@@ -130,6 +143,24 @@ const href = (h: string) => (h.startsWith('/') ? url(h) : h);
 				</div>
 			</div>
 		</footer>
+		<script>
+			// Looping videos marked data-autoplay (lead videos, write-up recordings) play only while
+			// on screen, so nothing downloads until it's needed. With reduced motion they stay
+			// still and get controls instead.
+			const loops = document.querySelectorAll<HTMLVideoElement>('video[data-autoplay]');
+			if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+				loops.forEach((v) => (v.controls = true));
+			} else if (loops.length) {
+				const io = new IntersectionObserver((entries) =>
+					entries.forEach(({ target, isIntersecting }) => {
+						const v = target as HTMLVideoElement;
+						if (isIntersecting) v.play().catch(() => {});
+						else v.pause();
+					}),
+				);
+				loops.forEach((v) => io.observe(v));
+			}
+		</script>
 		<script>
 			// Contact menu: opens on hover/focus (CSS). Touch screens have no hover, so a tap toggles it there.
 			const menu = document.querySelector<HTMLElement>('.contact-menu');
