@@ -24,7 +24,7 @@ deck:
     - The product
     - Going further
     - Thank you
-  hideFromList: [Thank you] # still in the deck, just not in the slide list
+  hideFromList: [Mitosis Stopwatch, Thank you] # still in the deck, just not in Contents
   # GIFs from the PPTX (ppt/media), positions from each slide's XML
   motion:
     - { slide: 3, src: slide-03.mp4, left: 48.37, top: 14.00, width: 45.02, height: 78.13 }

@@ -17,7 +17,6 @@ embedPages:
   - { label: System Design, path: system-design }
   - { label: FAQs, path: faq }
   - { label: About, path: about }
-  - { label: Contact, path: contact }
 ---
 
 ## Overview

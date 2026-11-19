@@ -98,20 +98,22 @@ const bare = (href: string) => href.replace(/^https?:\/\//, '').replace(/\/$/, '
 		const pages = [...document.querySelectorAll<HTMLAnchorElement>('#site-pages a')];
 		const label = document.getElementById('viewer-url')!;
 		const open = document.getElementById('viewer-open') as HTMLAnchorElement;
+		const origin = new URL(viewer.src).origin;
+		// Compare pages without the hash or trailing slash: /rolo.dev/faq/#x matches /rolo.dev/faq
+		const key = (href: string) => href.split('#')[0].replace(/\/$/, '');
 		const sync = (href: string) => {
-			const clean = href.replace(/\/$/, '');
-			label.textContent = clean.replace(/^https?:\/\//, '');
+			label.textContent = key(href).replace(/^https?:\/\//, '');
 			open.href = href;
 			pages.forEach((a) =>
-				a.href.replace(/\/$/, '') === clean ? a.setAttribute('aria-current', 'true') : a.removeAttribute('aria-current'),
+				key(a.href) === key(href) ? a.setAttribute('aria-current', 'true') : a.removeAttribute('aria-current'),
 			);
 		};
 		pages.forEach((a) => a.addEventListener('click', () => sync(a.href)));
-		viewer.addEventListener('load', () => {
-			// Same origin once deployed (both on larawashington.github.io), so links clicked inside the frame update too.
-			try {
-				sync(viewer.contentWindow!.location.href);
-			} catch {}
+		// The framed site is on another domain, so it reports its own address (see rolo.dev's
+		// Layout.astro). This covers links clicked inside the frame as well as the list.
+		window.addEventListener('message', (e) => {
+			if (e.source !== viewer.contentWindow || e.origin !== origin) return;
+			if (e.data?.type === 'rolo:location' && typeof e.data.href === 'string') sync(e.data.href);
 		});
 	}
 </script>

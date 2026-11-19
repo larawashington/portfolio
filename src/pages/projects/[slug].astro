@@ -32,6 +32,16 @@ const video = !embed && !deck && data.heroVideo && !data.pageHero ? url(`/media/
 const poster = video ? await getImage({ src: data.hero, width: 2008, format: 'webp' }) : null;
 const pageUrl = (path: string) => new URL(path, data.liveUrl).href;
 
+// Left-column Contents: numbered from I. whatever the source. Hidden slides stay in the deck.
+type Entry = { label: string; href?: string; slide?: number };
+const contents: Entry[] = embed
+	? embed.map((pg) => ({ label: pg.label, href: pageUrl(pg.path) }))
+	: deck
+		? deck.slides
+				.map((label, slide) => ({ label, slide }))
+				.filter(({ label }) => !(deck.hideFromList ?? []).includes(label))
+		: sections.map((h) => ({ label: h.text, href: `#${h.slug}` }));
+
 const spec = [
 	{ label: 'Skills', value: data.skills ?? 'Placeholder' },
 	{ label: 'Tools', value: data.tools.join(', ') },
@@ -43,67 +53,41 @@ const spec = [
 	{embed && <link slot="head" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" />}
 	<!--
 		Same frame as the home page: the title sits at the top of the left rail, level
-		with the lead media opposite, and stays in view (sticky) while the case study scrolls.
+		with the spec strip opposite, and stays in view (sticky) while the case study scrolls.
 	-->
 	<div class="page split pt-8 pb-10 lg:pt-10">
 		<aside class="left sticky-col flex flex-col gap-10 lg:gap-12" aria-label="On this page">
 			<h1 class="t-rail-title -mt-[6px] text-balance">{data.title}</h1>
 
-			{
-				embed ? (
-					<nav aria-labelledby="pages-label">
-						<div class="border-t border-ink pt-2">
-							<h2 id="pages-label" class="t-section">Browse the site</h2>
-						</div>
-						<ul class="mt-4 flex flex-col gap-2" id="site-pages">
-							{embed.map((pg, i) => (
-								<li>
-									<a
-										href={pageUrl(pg.path)}
-										target="site-viewer"
-										aria-current={i === 0 ? 'true' : undefined}
-										class="toc-item t-small text-ink-soft hover:text-ink"
-									>
-										<span class="label">{pg.label}</span>
-									</a>
-								</li>
-							))}
-						</ul>
-					</nav>
-				) : deck ? (
-					<nav aria-labelledby="slides-label">
-						<div class="border-t border-ink pt-2">
-							<h2 id="slides-label" class="t-section">Presentation</h2>
-						</div>
-						<ol class="mt-4 flex flex-col gap-2" id="deck-slides">
-							{deck.slides.map((title, i) => !(deck.hideFromList ?? []).includes(title) && (
-								<li>
-									<button type="button" data-slide={i} class="toc-item t-small flex cursor-pointer gap-2 text-left text-ink-soft hover:text-ink">
-										<span class="w-8 flex-none text-ink-faint">{roman(i + 1)}</span>
-										<span class="label">{title}</span>
-									</button>
-								</li>
-							))}
-						</ol>
-					</nav>
-				) : (
-					<nav aria-labelledby="contents-label">
-						<div class="border-t border-ink pt-2">
-							<h2 id="contents-label" class="t-section">Contents</h2>
-						</div>
-						<ol class="mt-4 flex flex-col gap-2" id="contents">
-							{sections.map((h, i) => (
-								<li>
-									<a href={`#${h.slug}`} class="toc-item t-small flex gap-2 text-ink-soft hover:text-ink">
-										<span class="w-8 flex-none text-ink-faint">{roman(i + 1)}</span>
-										<span class="label">{h.text}</span>
-									</a>
-								</li>
-							))}
-						</ol>
-					</nav>
-				)
-			}
+			<!-- One Contents menu for every project: sections of the write-up, slides of the
+			     deck, or pages of the embedded site. Same numbered list in each case. -->
+			<nav aria-labelledby="contents-label">
+				<div class="border-t border-ink pt-2">
+					<h2 id="contents-label" class="t-section">Contents</h2>
+				</div>
+				<ol class="mt-4 flex flex-col gap-2" id={embed ? 'site-pages' : deck ? 'deck-slides' : 'contents'}>
+					{contents.map((item, i) => (
+						<li>
+							{item.slide !== undefined ? (
+								<button type="button" data-slide={item.slide} class="toc-item t-small flex cursor-pointer gap-2 text-left text-ink-soft hover:text-ink">
+									<span class="w-8 flex-none text-ink-faint">{roman(i + 1)}</span>
+									<span class="label">{item.label}</span>
+								</button>
+							) : (
+								<a
+									href={item.href}
+									target={embed ? 'site-viewer' : undefined}
+									aria-current={embed && i === 0 ? 'true' : undefined}
+									class="toc-item t-small flex gap-2 text-ink-soft hover:text-ink"
+								>
+									<span class="w-8 flex-none text-ink-faint">{roman(i + 1)}</span>
+									<span class="label">{item.label}</span>
+								</a>
+							)}
+						</li>
+					))}
+				</ol>
+			</nav>
 
 			<div class="flex flex-col gap-2">
 				<a href={url('/')} class="t-small self-start hover:underline underline-offset-3">← Selected works</a>
@@ -114,43 +98,7 @@ const spec = [
 		</aside>
 
 		<article class="main">
-			{
-				embed ? (
-					<div>
-						<SiteViewer src={data.liveUrl!} title={data.title} />
-					</div>
-				) : deck ? (
-					<div>
-						<DeckViewer dir={deck.dir} slides={deck.slides} motion={deck.motion ?? []} />
-					</div>
-				) : (
-					<figure>
-						<a href={data.liveUrl} target="_blank" rel="noopener" class="lead-link block" aria-label={`Open ${data.title} in a new tab`}>
-						{video ? (
-							<video
-								class="lead-video media-edge w-full"
-								src={video}
-								poster={poster!.src}
-								width={poster!.attributes.width}
-								height={poster!.attributes.height}
-								muted
-								loop
-								playsinline
-								autoplay
-								aria-label={heroAlt}
-							/>
-						) : isGif ? (
-							<img src={heroSrc.src} width={heroSrc.width} height={heroSrc.height} alt={heroAlt} class="media-edge w-full" />
-						) : (
-							<Image src={heroSrc} alt={heroAlt} widths={[1004, 2008]} sizes="(min-width: 1440px) 1004px, 100vw" class="media-edge w-full" />
-						)}
-						</a>
-						{heroCaption && <figcaption>{heroCaption}</figcaption>}
-					</figure>
-				)
-			}
-
-			<dl class="mt-8 grid gap-4 border-t border-rule pt-2 sm:grid-cols-3">
+			<dl class="grid gap-4 border-t border-rule pt-2 sm:grid-cols-3">
 				{
 					spec.map(({ label, value }) => (
 						<div class="flex flex-col gap-1">
@@ -179,6 +127,42 @@ const spec = [
 							</li>
 						)}
 					</ul>
+				)
+			}
+
+			{
+				embed ? (
+					<div class="mt-12">
+						<SiteViewer src={data.liveUrl!} title={data.title} />
+					</div>
+				) : deck ? (
+					<div class="mt-12">
+						<DeckViewer dir={deck.dir} slides={deck.slides} motion={deck.motion ?? []} />
+					</div>
+				) : (
+					<figure class="mt-12">
+						<a href={data.liveUrl} target="_blank" rel="noopener" class="lead-link block" aria-label={`Open ${data.title} in a new tab`}>
+						{video ? (
+							<video
+								class="lead-video media-edge w-full"
+								src={video}
+								poster={poster!.src}
+								width={poster!.attributes.width}
+								height={poster!.attributes.height}
+								muted
+								loop
+								playsinline
+								autoplay
+								aria-label={heroAlt}
+							/>
+						) : isGif ? (
+							<img src={heroSrc.src} width={heroSrc.width} height={heroSrc.height} alt={heroAlt} class="media-edge w-full" />
+						) : (
+							<Image src={heroSrc} alt={heroAlt} widths={[1004, 2008]} sizes="(min-width: 1440px) 1004px, 100vw" class="media-edge w-full" />
+						)}
+						</a>
+						{heroCaption && <figcaption>{heroCaption}</figcaption>}
+					</figure>
 				)
 			}
 
