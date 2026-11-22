@@ -467,9 +467,12 @@ video {
 	@apply t-body;
 	max-width: 720px;
 }
+/* Subhead inside a section: body size, medium weight. Sits under the 12px section label
+   in rank, so it reads as a lead-in to the text below, not a new title. */
 .case-row h3 {
-	@apply t-project-title;
-	margin-top: 24px;
+	@apply t-body;
+	font-weight: 500;
+	margin: 16px 0 -16px; /* tucks to its list: 24px row gap − 16px = 8px */
 }
 .case-row blockquote {
 	@apply t-pull-quote;

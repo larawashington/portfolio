@@ -79,7 +79,7 @@ const year = new Date().getFullYear();
 																rel={isMail ? undefined : 'noopener'}
 																class="t-small flex items-baseline justify-between gap-6 py-2 text-ink-soft transition-colors hover:text-ink"
 															>
-																<span>{label}</span>
+																<span data-label>{label}</span>
 																<span class="text-ink-faint" aria-hidden="true">→</span>
 															</a>
 														</li>
@@ -129,7 +129,7 @@ const year = new Date().getFullYear();
 											rel={isMail ? undefined : 'noopener'}
 											class="t-small block font-medium hover:underline underline-offset-3"
 										>
-											{label}
+											<span data-label>{label}</span>
 											<span class="ext" aria-hidden="true">↗</span>
 										</a>
 									</li>
@@ -185,6 +185,28 @@ const year = new Date().getFullYear();
 					}
 				});
 			}
+		</script>
+		<p class="sr-only" aria-live="polite" id="copy-status"></p>
+		<script>
+			// Email links: mailto does nothing when no mail app is set up, so a click also copies
+			// the address and the label briefly reads "Copied". The mailto still opens a mail app if there is one.
+			const status = document.getElementById('copy-status')!;
+			document.addEventListener('click', (e) => {
+				const a = (e.target as Element).closest<HTMLAnchorElement>('a[href^="mailto:"]');
+				if (!a) return;
+				const address = a.href.slice('mailto:'.length).split('?')[0];
+				navigator.clipboard?.writeText(address).then(() => {
+					const label = a.querySelector<HTMLElement>('[data-label]');
+					if (label) {
+						const text = label.dataset.text ?? label.textContent ?? '';
+						label.dataset.text = text;
+						label.textContent = 'Copied';
+						clearTimeout(Number(label.dataset.timer));
+						label.dataset.timer = String(setTimeout(() => (label.textContent = text), 1600));
+					}
+					status.textContent = `Email address ${address} copied`;
+				}, () => {});
+			});
 		</script>
 	</body>
 </html>
